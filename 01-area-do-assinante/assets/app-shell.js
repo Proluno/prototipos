@@ -83,16 +83,16 @@
 
   var navList = document.getElementById('appNavList');
   navList.innerHTML = NAV.map(function (n, i) {
-    if (!n.items) return '<a class="pl-nav-item" href="' + ROOT + n.href + '">' + icon(n.icon, '', 1.8) + n.label + '</a>';
+    if (!n.items) return '<a class="pl-nav-item" href="' + ROOT + n.href + 'index.html">' + icon(n.icon, '', 1.8) + n.label + '</a>';
     var active = n.items.some(function (it) { return it[1] === HERE; });
     return '<div class="pl-nav-group' + (active ? ' is-open has-active' : '') + '">' +
       '<button class="pl-nav-item" type="button" aria-expanded="' + active + '" aria-controls="navg' + i + '">' + icon(n.icon, '', 1.8) + n.label + icon('chevron-down', 'pl-nav-item-chevron') + '</button>' +
       '<div class="pl-nav-group-items" id="navg' + i + '">' + n.items.map(function (it) {
         var on = it[1] === HERE;
-        return '<a class="pl-nav-subitem' + (on ? ' is-active' : '') + '" href="' + ROOT + it[1] + '"' + (on ? ' aria-current="page"' : '') + '>' + it[0] + '</a>';
+        return '<a class="pl-nav-subitem' + (on ? ' is-active' : '') + '" href="' + ROOT + it[1] + 'index.html"' + (on ? ' aria-current="page"' : '') + '>' + it[0] + '</a>';
       }).join('') + '</div></div>';
   }).join('') + '<p class="pl-nav-label">Ferramentas</p>' + TOOLS.map(function (t) {
-    return '<a class="pl-nav-item" href="' + ROOT + t[2] + '"><span class="pl-nav-tool-icon">' + icon(t[1]) + '</span>' + t[0] + '</a>';
+    return '<a class="pl-nav-item" href="' + ROOT + t[2] + 'index.html"><span class="pl-nav-tool-icon">' + icon(t[1]) + '</span>' + t[0] + '</a>';
   }).join('');
   navList.addEventListener('click', function (e) {
     var b = e.target.closest('button.pl-nav-item'); if (!b) return;

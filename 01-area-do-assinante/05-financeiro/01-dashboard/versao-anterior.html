@@ -20,7 +20,7 @@
   window.addEventListener('message', function(e){ if (e.data && e.data.__nav && D.pages.indexOf(e.data.__nav) >= 0) { history.pushState(null, '', '#' + e.data.__nav); render(); } });
   /* Menu lateral: navega para a pasta da página (caminho relativo à Área do Assinante) */
   var ROOT = '../../';
-  window.addEventListener('message', function(e){ if (e.source === frame.contentWindow && e.data && typeof e.data.__href === 'string') location.href = ROOT + e.data.__href; });
+  window.addEventListener('message', function(e){ if (e.source === frame.contentWindow && e.data && typeof e.data.__href === 'string') location.href = ROOT + e.data.__href + 'index.html'; });
   window.addEventListener('popstate', render);
   if (mq.addEventListener) mq.addEventListener('change', render); else mq.addListener(render);
   render();
