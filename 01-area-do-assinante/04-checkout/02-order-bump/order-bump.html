@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order Bump · Proluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../../../04-design-system/proluno.css">
+<style>
+  .ob-back { display: inline-flex; align-items: center; gap: var(--space-6); margin-bottom: 14px; font-size: 13.5px; font-weight: 500; color: var(--ink-muted); text-decoration: none; }
+  .ob-back:hover { color: var(--ink-strong); }
+  .ob-back svg { width: 16px; height: 16px; }
+  .ob-page .pl-page-lead { margin: 10px 0 20px; font-size: 16px; }
+
+  /* Formulário à esquerda, pré-visualização fixa à direita */
+  .ob-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 24px; margin-top: 20px; }
+  .ob-form { display: flex; flex-direction: column; gap: 20px; }
+  .ob-form .pl-card--section { padding: 24px 28px 28px; }
+  .ob-form .pl-card-title { margin-bottom: 20px; font-size: 18px !important; font-weight: 700 !important; color: var(--ink-heading) !important; }
+  .ob-fields { display: flex; flex-direction: column; gap: 22px; }
+  .ob-fields .pl-field-head > label, .ob-fields .pl-field > label { font-size: 13.5px; color: var(--ink); }
+  .ob-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .ob-hint a { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .ob-hint a:hover { text-decoration: underline; }
+
+  /* Status no topo do card de configurações */
+  .ob-status { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; margin-bottom: 22px; border: 1px solid var(--line-soft); border-radius: var(--radius-10); background: var(--bg-subtle); }
+  .ob-status-label { font-size: 14px; font-weight: 600; color: var(--ink-heading); }
+  .ob-status-text { display: block; margin-top: 2px; font-size: 12.5px; color: var(--ink-muted); }
+
+  /* Select nativo com o chevron do Design System */
+  .ob-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; color: var(--ink-body); }
+  .ob-select select:invalid, .ob-select select.is-placeholder { color: var(--ink-faint); }
+  .ob-select > svg { position: absolute; top: 50%; right: 12px; width: 15px; height: 15px; color: var(--ink-faint); transform: translateY(-50%); pointer-events: none; }
+  .ob-select.is-invalid select { border-color: var(--danger); }
+
+  /* Onde aparece: MultiSelect com busca, escolhidos viram FilterTag */
+  .ob-pick { position: relative; }
+  .ob-pick-trigger { color: var(--ink-faint); }
+  .ob-pick-trigger.has-value { color: var(--ink-body); }
+  .ob-pick-trigger.is-open { border-color: var(--primary); }
+  .ob-pick-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: var(--z-multiselect); }
+  .ob-pick-panel .pl-multiselect-option { width: 100%; border: 0; font-family: var(--font-sans); text-align: left; }
+  .ob-pick-empty { padding: 18px 14px; font-size: 13px; color: var(--ink-faint); text-align: center; }
+  .ob-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .ob-tags:empty { display: none; }
+
+  /* Cores */
+  .ob-color { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .ob-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ob-swatch { width: 26px; height: 26px; padding: 0; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 50%; cursor: pointer; }
+  .ob-swatch.is-selected { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink-heading); }
+  .ob-hex { width: 128px; }
+  .ob-hex i { width: 16px; height: 16px; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; flex-shrink: 0; }
+  .ob-hex input { font-family: var(--font-mono); font-size: 13px; text-transform: lowercase; }
+
+  /* Pré-visualização: como o order bump aparece no checkout */
+  .ob-preview { position: sticky; top: calc(var(--size-topbar) + 20px); }
+  .ob-preview .pl-card { padding: 20px; }
+  .ob-preview-head { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--ink-heading); }
+  .ob-preview-sub { margin: 0 0 16px; font-size: 12.5px; color: var(--ink-muted); }
+  .ob-bump { padding: 16px; border: 2px dashed var(--primary-disabled); border-radius: var(--radius-10); background: var(--primary-row-hover); }
+  .ob-bump-title { margin: 0 0 6px; font-size: 15px; font-weight: 700; line-height: 1.35; color: var(--ink-heading); overflow-wrap: anywhere; }
+  .ob-bump-desc { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: var(--ink-secondary); overflow-wrap: anywhere; }
+  .ob-bump .is-empty { color: var(--ink-faint); }
+  .ob-bump-product { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .ob-bump-img { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; padding: 6px; border-radius: var(--radius-8); background: var(--bg-cool); font-size: 10px; line-height: 1.3; color: var(--ink-muted); text-align: center; flex-shrink: 0; }
+  .ob-bump-name { margin: 0 0 4px; font-size: 13.5px; font-weight: 600; color: var(--ink-body); overflow-wrap: anywhere; }
+  .ob-bump-price { font-size: 16px; font-weight: 700; color: var(--ink-heading); font-variant-numeric: tabular-nums; }
+  .ob-bump-btn { width: 100%; padding: 11px 16px; border: 0; border-radius: var(--radius-8); font-family: var(--font-sans); font-size: 14px; font-weight: 700; overflow-wrap: anywhere; cursor: default; }
+
+  .ob-actions { display: flex; justify-content: flex-end; gap: 12px; }
+
+  @media (max-width: 1080px) {
+    .ob-layout { grid-template-columns: minmax(0, 1fr); }
+    .ob-preview { position: static; }
+  }
+  @media (max-width: 768px) {
+    .ob-page .pl-page-lead { font-size: 14.5px; }
+    .ob-form .pl-card--section { padding: 20px 16px 22px; }
+    .ob-cols { grid-template-columns: 1fr; }
+    .ob-actions { display: none; }
+    .ob-select select { font-size: 16px; }
+    .ob-hex input { font-size: 16px; }
+    .ob-swatch { width: 32px; height: 32px; }
+  }
+</style>
+</head>
+<body data-page="04-checkout/02-order-bump/">
+
+<div class="pl-app">
+  <!-- Menu principal (vira gaveta abaixo de 768px) -->
+  <aside class="pl-app-sidebar" id="appNav" aria-label="Menu principal">
+    <div class="pl-app-brand">
+      <a href="../../01-inicio/index.html" aria-label="Proluno — Início"><span class="pl-logo">Prol<span class="pl-logo-dots"><i class="d-teal"></i><i class="d-pink"></i><i class="d-orange"></i><i class="d-blue"></i></span><span class="pl-logo-accent">uno.</span></span></a>
+      <button class="pl-icon-btn pl-icon-btn--close pl-drawer-close" type="button" data-nav-close aria-label="Fechar menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg></button>
+    </div>
+    <nav class="pl-nav" id="appNavList"></nav>
+  </aside>
+  <div class="pl-backdrop" id="navBackdrop" data-nav-close></div>
+
+  <div class="pl-app-main">
+    <header class="pl-mobile-topbar">
+      <button class="pl-menu-toggle" type="button" id="navOpen" aria-label="Abrir menu" aria-controls="appNav" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-menu"/></svg></button>
+      <span class="pl-logo">Prol<span class="pl-logo-dots"><i class="d-teal"></i><i class="d-pink"></i><i class="d-orange"></i><i class="d-blue"></i></span><span class="pl-logo-accent">uno.</span></span>
+      <button class="pl-header-btn" type="button" aria-label="Notificações, 10 novas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg><span class="pl-count-dot">10</span></button>
+    </header>
+    <header class="pl-app-header">
+      <button class="pl-header-btn" type="button" aria-label="Notificações, 10 novas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg><span class="pl-count-dot">10</span></button>
+      <a class="pl-user-btn" href="../../08-configuracoes/01-editar-perfil/index.html" aria-label="Meu perfil"><span class="pl-avatar pl-avatar--sm pl-avatar--orange">JF</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chevron-down"/></svg></a>
+    </header>
+
+    <main class="pl-page pl-app-content pl-has-action-bar ob-page">
+      <div id="page">
+        <a class="ob-back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chevron-left"/></svg>Voltar para order bumps</a>
+        <h1 class="pl-page-title" id="pageTitle">Novo order bump</h1>
+        <p class="pl-page-lead" id="pageLead">Escolha o produto ofertado, onde ele aparece e como o convite é exibido no checkout.</p>
+
+        <div class="pl-banner pl-banner--warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-alert"/></svg>
+          <span><strong>Aviso:</strong> ofertas de order bump só aparecem em checkouts de links próprios e não são exibidas quando a venda é feita por link de afiliado.</span>
+        </div>
+
+        <div class="ob-layout">
+          <form class="ob-form" id="obForm" novalidate>
+            <section class="pl-card pl-card--section" aria-labelledby="sConfig">
+              <h2 class="pl-card-title" id="sConfig">Configurações</h2>
+
+              <div class="ob-status">
+                <div><span class="ob-status-label" id="stLabel">Status do order bump</span><span class="ob-status-text" id="stText">Desativado — não aparece no checkout</span></div>
+                <button class="pl-switch" type="button" role="switch" aria-checked="false" aria-labelledby="stLabel" id="fActive"></button>
+              </div>
+
+              <div class="ob-fields">
+                <div class="pl-field">
+                  <div class="pl-field-head"><label for="fName">Nome <span class="pl-required">*</span></label><span class="pl-counter" id="cName">0/30</span></div>
+                  <div class="pl-input" id="fNameBox"><input id="fName" maxlength="30" placeholder="Digite aqui" autocomplete="off" aria-describedby="hName eName"></div>
+                  <span class="pl-hint" id="hName">Defina um nome para o seu order bump. Ele não aparece para o aluno.</span>
+                  <p class="pl-error" id="eName" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg><span></span></p>
+                </div>
+
+                <div class="ob-cols">
+                  <div class="pl-field">
+                    <label for="fProduct">Produto <span class="pl-required">*</span></label>
+                    <div class="pl-select-wrap ob-select" id="fProductBox">
+                      <select class="pl-select" id="fProduct" aria-describedby="hProduct eProduct"><option value="">Selecione</option></select>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+                    </div>
+                    <span class="pl-hint" id="hProduct">Selecione o produto que será ofertado no order bump.</span>
+                    <p class="pl-error" id="eProduct" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg><span></span></p>
+                  </div>
+                  <div class="pl-field">
+                    <label for="fPrice">Qual será o preço? <span class="pl-required">*</span></label>
+                    <div class="pl-select-wrap ob-select" id="fPriceBox">
+                      <select class="pl-select" id="fPrice" disabled aria-describedby="hPrice ePrice"><option value="">Selecione</option></select>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+                    </div>
+                    <span class="pl-hint ob-hint" id="hPrice">Selecione um dos preços cadastrados para esse produto. Para cadastrar um novo preço ou oferta, <a href="../../03-produtos/01-meus-produtos/01-produto/04-precos/01-precos/index.html">clique aqui</a>.</span>
+                    <p class="pl-error" id="ePrice" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg><span></span></p>
+                  </div>
+                </div>
+
+                <div class="pl-field">
+                  <label id="pLabel">Onde seu order bump irá aparecer?</label>
+                  <div class="ob-pick" id="pick">
+                    <button class="pl-select ob-pick-trigger" type="button" id="pickBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="pickPanel" aria-labelledby="pLabel pickText">
+                      <span id="pickText">Selecione</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+                    </button>
+                    <div class="pl-multiselect-panel ob-pick-panel" id="pickPanel" hidden>
+                      <label class="pl-multiselect-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-search"/></svg>
+                        <input type="search" id="pSearch" placeholder="Buscar produto" autocomplete="off" aria-label="Buscar produto">
+                      </label>
+                      <div class="pl-multiselect-options" id="pList" role="listbox" aria-multiselectable="true" aria-labelledby="pLabel"></div>
+                    </div>
+                  </div>
+                  <span class="pl-hint">Você pode selecionar um ou mais produtos. O order bump aparece no checkout dos produtos selecionados.</span>
+                  <div class="ob-tags" id="tags"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="pl-card pl-card--section" aria-labelledby="sCustom">
+              <h2 class="pl-card-title" id="sCustom">Personalização</h2>
+              <div class="ob-fields">
+                <div class="pl-field">
+                  <div class="pl-field-head"><label for="fBtnText">Texto do botão</label><span class="pl-counter" id="cBtnText">0/30</span></div>
+                  <div class="pl-input"><input id="fBtnText" maxlength="30" placeholder="Digite aqui" autocomplete="off"></div>
+                </div>
+
+                <div class="pl-field">
+                  <label id="lBtnColor">Cor do botão</label>
+                  <div class="ob-color" data-color="buttonColor" role="group" aria-labelledby="lBtnColor"></div>
+                </div>
+                <div class="pl-field">
+                  <label id="lTxtColor">Cor do texto do botão</label>
+                  <div class="ob-color" data-color="buttonTextColor" role="group" aria-labelledby="lTxtColor"></div>
+                </div>
+
+                <div class="pl-field">
+                  <div class="pl-field-head"><label for="fTitle">Título de destaque</label><span class="pl-counter" id="cTitle">0/50</span></div>
+                  <textarea class="pl-textarea" id="fTitle" rows="2" maxlength="50" placeholder="Digite aqui"></textarea>
+                </div>
+                <div class="pl-field">
+                  <div class="pl-field-head"><label for="fDesc">Texto auxiliar</label><span class="pl-counter" id="cDesc">0/150</span></div>
+                  <textarea class="pl-textarea" id="fDesc" rows="3" maxlength="150" placeholder="Digite aqui"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <div class="ob-actions">
+              <a class="pl-btn pl-btn--secondary" href="index.html">Cancelar</a>
+              <button class="pl-btn pl-btn--primary" type="submit" data-save>Salvar</button>
+            </div>
+          </form>
+
+          <aside class="ob-preview" aria-labelledby="pvTitle">
+            <div class="pl-card">
+              <h2 class="ob-preview-head" id="pvTitle">Pré-visualização</h2>
+              <p class="ob-preview-sub">Como o order bump aparece no checkout.</p>
+              <div class="ob-bump">
+                <p class="ob-bump-title" id="pvBumpTitle"></p>
+                <p class="ob-bump-desc" id="pvDesc"></p>
+                <div class="ob-bump-product">
+                  <div class="ob-bump-img">Imagem do produto</div>
+                  <div><p class="ob-bump-name" id="pvName"></p><span class="ob-bump-price" id="pvPrice"></span></div>
+                </div>
+                <button class="ob-bump-btn" type="button" id="pvBtn" tabindex="-1" aria-hidden="true"></button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Ações no mobile -->
+<div class="pl-action-bar" style="gap:10px">
+  <a class="pl-btn pl-btn--secondary" href="index.html" style="flex:1">Cancelar</a>
+  <button class="pl-btn pl-btn--primary" type="submit" form="obForm" data-save style="flex:1.5">Salvar</button>
+</div>
+
+<div class="pl-toast-region" id="toasts" role="status" aria-live="polite"></div>
+
+<script src="../../assets/app-shell.js"></script>
+<script src="order-bumps.js"></script>
+<script>
+(function () {
+  var O = window.OrderBumps, icon = O.icon, esc = O.esc, norm = O.norm;
+  var LIST = 'index.html';
+  var bumps = O.load();
+  var id = new URLSearchParams(location.search).get('id');
+  var editing = null;
+  if (id) for (var i = 0; i < bumps.length; i++) if (bumps[i].id === id) editing = bumps[i];
+
+  if (id && !editing) {
+    document.getElementById('page').innerHTML = '<a class="ob-back" href="' + LIST + '">' + icon('chevron-left') + 'Voltar para order bumps</a>' +
+      '<div class="pl-empty pl-empty--dashed"><h1 class="pl-empty-title">Order bump não encontrado</h1>' +
+      '<p class="pl-empty-text">Ele pode ter sido excluído. Volte para a lista e escolha outro order bump.</p></div>';
+    document.querySelector('.pl-action-bar').hidden = true;
+    return;
+  }
+
+  var data = editing ? JSON.parse(JSON.stringify(editing)) : { name: '', product: '', price: null, active: false, showOn: [],
+    buttonText: '', buttonColor: O.COLORS[0], buttonTextColor: '#ffffff', title: '', desc: '' };
+
+  if (editing) {
+    document.title = 'Editar order bump · Proluno';
+    document.getElementById('pageTitle').textContent = 'Editar order bump';
+    document.getElementById('pageLead').textContent = 'Altere a oferta, onde ela aparece ou como é exibida no checkout.';
+    document.querySelectorAll('[data-save]').forEach(function (b) { b.textContent = 'Salvar alterações'; });
+  } else {
+    document.title = 'Novo order bump · Proluno';
+  }
+
+  var $ = function (s) { return document.getElementById(s); };
+  var fName = $('fName'), fProduct = $('fProduct'), fPrice = $('fPrice'), fBtnText = $('fBtnText'), fTitle = $('fTitle'), fDesc = $('fDesc'), fActive = $('fActive');
+
+  /* ---------- Status ---------- */
+  function renderStatus() {
+    fActive.classList.toggle('is-on', data.active); fActive.setAttribute('aria-checked', data.active);
+    $('stText').textContent = data.active ? 'Ativado — aparece no checkout dos produtos selecionados' : 'Desativado — não aparece no checkout';
+  }
+  fActive.addEventListener('click', function () { data.active = !data.active; renderStatus(); });
+
+  /* ---------- Produto e preço ---------- */
+  fProduct.innerHTML += O.PRODUCTS.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');
+  function renderPrices() {
+    var prices = O.PRICES[data.product] || [];
+    if (!data.product) fPrice.innerHTML = '<option value="">Selecione o produto antes</option>';
+    else if (!prices.length) fPrice.innerHTML = '<option value="">Nenhum preço cadastrado</option>';
+    else fPrice.innerHTML = '<option value="">Selecione</option>' + prices.map(function (v) { return '<option value="' + v + '">' + O.money(v) + '</option>'; }).join('');
+    fPrice.disabled = !prices.length;
+    if (prices.indexOf(data.price) < 0) data.price = prices.length === 1 ? prices[0] : null;
+    fPrice.value = data.price == null ? '' : String(data.price);
+    fPrice.classList.toggle('is-placeholder', !fPrice.value);
+  }
+  fProduct.addEventListener('change', function () { data.product = fProduct.value; fProduct.classList.toggle('is-placeholder', !data.product); setError('Product', ''); setError('Price', ''); renderPrices(); preview(); });
+  fPrice.addEventListener('change', function () { data.price = fPrice.value ? +fPrice.value : null; fPrice.classList.toggle('is-placeholder', !fPrice.value); setError('Price', ''); preview(); });
+
+  /* ---------- Onde aparece ---------- */
+  var pick = $('pick'), pickBtn = $('pickBtn'), panel = $('pickPanel'), pSearch = $('pSearch'), pList = $('pList'), tags = $('tags');
+  function renderOptions() {
+    var q = norm(pSearch.value);
+    var list = O.PRODUCTS.filter(function (p) { return !q || norm(p).indexOf(q) >= 0; });
+    pList.innerHTML = list.length ? list.map(function (p) {
+      var on = data.showOn.indexOf(p) >= 0;
+      return '<button class="pl-multiselect-option" type="button" role="option" aria-selected="' + on + '" data-p="' + esc(p) + '"><input class="pl-check" type="checkbox" tabindex="-1"' + (on ? ' checked' : '') + '><span>' + esc(p) + '</span></button>';
+    }).join('') : '<div class="ob-pick-empty">Nenhum produto com esse nome.</div>';
+  }
+  function renderTags() {
+    var n = data.showOn.length;
+    $('pickText').textContent = n ? (n === 1 ? '1 produto selecionado' : n + ' produtos selecionados') : 'Selecione';
+    pickBtn.classList.toggle('has-value', !!n);
+    tags.innerHTML = data.showOn.map(function (p) {
+      return '<button class="pl-filter-tag" type="button" data-untag="' + esc(p) + '" aria-label="Remover ' + esc(p) + '"><span class="pl-filter-tag-val">' + esc(p) + '</span>' + icon('x') + '</button>';
+    }).join('');
+  }
+  function setOpen(open) {
+    panel.hidden = !open; pickBtn.classList.toggle('is-open', open); pickBtn.setAttribute('aria-expanded', open);
+    if (open) { pSearch.value = ''; renderOptions(); pSearch.focus({ preventScroll: true }); }
+  }
+  pickBtn.addEventListener('click', function () { setOpen(panel.hidden); });
+  pSearch.addEventListener('input', renderOptions);
+  pList.addEventListener('click', function (e) {
+    var o = e.target.closest('[data-p]'); if (!o) return; e.preventDefault();
+    var p = o.getAttribute('data-p'), at = data.showOn.indexOf(p);
+    if (at < 0) data.showOn.push(p); else data.showOn.splice(at, 1);
+    renderOptions(); renderTags();
+  });
+  tags.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-untag]'); if (!t) return;
+    data.showOn.splice(data.showOn.indexOf(t.getAttribute('data-untag')), 1); renderTags(); if (!panel.hidden) renderOptions();
+  });
+  document.addEventListener('click', function (e) { if (!panel.hidden && e.target.isConnected && !pick.contains(e.target)) setOpen(false); });
+
+  /* ---------- Cores ---------- */
+  var HEX = /^#[0-9a-f]{6}$/i;
+  function renderColor(group) {
+    var key = group.getAttribute('data-color'), list = key === 'buttonColor' ? O.COLORS : O.TEXT_COLORS, v = data[key];
+    group.innerHTML = '<div class="ob-swatches">' + list.map(function (c) {
+      var on = c.toLowerCase() === v.toLowerCase();
+      return '<button class="ob-swatch' + (on ? ' is-selected' : '') + '" type="button" data-swatch="' + c + '" style="background:' + c + '" aria-label="' + c + '" aria-pressed="' + on + '"></button>';
+    }).join('') + '</div><label class="pl-input pl-input--compact ob-hex"><i style="background:' + v + '"></i><input value="' + v + '" maxlength="7" aria-label="Código da cor"></label>';
+  }
+  document.querySelectorAll('[data-color]').forEach(function (g) {
+    var key = g.getAttribute('data-color');
+    renderColor(g);
+    g.addEventListener('click', function (e) { var s = e.target.closest('[data-swatch]'); if (!s) return; data[key] = s.getAttribute('data-swatch'); renderColor(g); preview(); });
+    g.addEventListener('input', function (e) {
+      var v = e.target.value.trim(); if (v && v[0] !== '#') v = '#' + v;
+      if (!HEX.test(v)) return;
+      data[key] = v; preview();
+      g.querySelector('.ob-hex i').style.background = v;
+      g.querySelectorAll('[data-swatch]').forEach(function (s) { var on = s.getAttribute('data-swatch').toLowerCase() === v.toLowerCase(); s.classList.toggle('is-selected', on); s.setAttribute('aria-pressed', on); });
+    });
+  });
+
+  /* ---------- Textos, contadores e pré-visualização ---------- */
+  function counters() {
+    $('cName').textContent = fName.value.length + '/30';
+    $('cBtnText').textContent = fBtnText.value.length + '/30';
+    $('cTitle').textContent = fTitle.value.length + '/50';
+    $('cDesc').textContent = fDesc.value.length + '/150';
+  }
+  function fill(el, text, placeholder) { el.textContent = text || placeholder; el.classList.toggle('is-empty', !text); }
+  function preview() {
+    fill($('pvBumpTitle'), data.title, 'Título de destaque');
+    fill($('pvDesc'), data.desc, 'Texto auxiliar');
+    fill($('pvName'), data.product, 'Nome do produto');
+    $('pvPrice').textContent = O.money(data.price);
+    var b = $('pvBtn'); b.textContent = data.buttonText || 'Texto do botão'; b.style.background = data.buttonColor; b.style.color = data.buttonTextColor;
+  }
+  [[fName, 'name'], [fBtnText, 'buttonText'], [fTitle, 'title'], [fDesc, 'desc']].forEach(function (f) {
+    f[0].value = data[f[1]];
+    f[0].addEventListener('input', function () { data[f[1]] = f[0].value; counters(); preview(); if (f[1] === 'name') setError('Name', ''); });
+  });
+
+  function setError(field, msg) {
+    var e = $('e' + field); e.hidden = !msg; e.querySelector('span').textContent = msg;
+    var box = $('f' + field + 'Box'); if (box) box.classList.toggle('is-invalid', !!msg);
+    $('f' + field).setAttribute('aria-invalid', !!msg);
+  }
+
+  /* ---------- Salvar ---------- */
+  $('obForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    data.name = data.name.trim();
+    var first = null;
+    if (!data.name) { setError('Name', 'Digite o nome do order bump.'); first = first || fName; }
+    if (!data.product) { setError('Product', 'Selecione o produto ofertado.'); first = first || fProduct; }
+    else if (!(O.PRICES[data.product] || []).length) { setError('Price', 'Esse produto não tem preço cadastrado.'); first = first || fProduct; }
+    else if (data.price == null) { setError('Price', 'Selecione o preço.'); first = first || fPrice; }
+    if (first) { first.focus(); return; }
+    if (editing) { Object.assign(editing, data); O.flash('Alterações salvas!'); }
+    else { data.id = O.newId(bumps); bumps.unshift(data); O.flash('Order bump criado!'); }
+    O.save(bumps);
+    location.href = LIST;
+  });
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); pickBtn.focus(); } });
+
+  fProduct.value = data.product; fProduct.classList.toggle('is-placeholder', !data.product);
+  renderStatus(); renderPrices(); renderTags(); counters(); preview();
+  if (!editing) fName.focus({ preventScroll: true });
+})();
+</script>
+</body>
+</html>
